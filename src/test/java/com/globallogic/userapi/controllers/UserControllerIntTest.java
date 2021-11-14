@@ -1,12 +1,9 @@
 package com.globallogic.userapi.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.globallogic.userapi.entities.CreateUserResponse;
 import com.globallogic.userapi.entities.User;
 import com.globallogic.userapi.entities.UserPhone;
-import com.globallogic.userapi.repository.UserRepository;
 import com.globallogic.userapi.services.UserService;
-import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -31,28 +28,14 @@ class UserControllerIntTest {
 
     protected static final Logger logger = LoggerFactory.getLogger(UserControllerIntTest.class);
 
+    @MockBean
+    private UserService userService;
+
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @MockBean
-    private User user;
-
-//    @Test
-//    void createUser() throws Exception {
-//
-//        RequestBuilder request = MockMvcRequestBuilders
-//                .post("/createuser")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(new Gson().toJson(new User("Miguel Sedek", "miguelsedek@gmail.com",
-//                        "H33zxc", Arrays.asList(new UserPhone("1234567",
-//                        "34","12")))));
-//
-//        MvcResult  result = mockMvc.perform(request).andReturn();
-//        assertEquals("Miguel Sedek", new Gson().fromJson(result.getResponse().getContentAsString(), User.class).getName());
-//    }
 
     @Test
     void nullBodyResponse() throws Exception {
@@ -118,23 +101,5 @@ class UserControllerIntTest {
         MvcResult  result = mockMvc.perform(request).andReturn();
         assertEquals(400, result.getResponse().getStatus());
         logger.info(String.format("Response status badPasswordResponse %d Expected status %d", result.getResponse().getStatus(), 400));
-    }
-
-    @Test
-    void userCreationSuccess() throws Exception {
-
-        //The test is performed by sending the correct json structure as per specification to create an user.
-        User user = new User("Miguel Sedek", "miguelsedek@gmail.cl",
-                "H33zxc", Arrays.asList(new UserPhone("1234567",
-                "34","12")));
-
-        RequestBuilder request = MockMvcRequestBuilders
-                .post("/createuser")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(user));
-
-        MvcResult  result = mockMvc.perform(request).andReturn();
-        assertEquals(201, result.getResponse().getStatus());
-        logger.info(String.format("Response status userCreationSuccess %d Expected status %d", result.getResponse().getStatus(), 201));
     }
 }
