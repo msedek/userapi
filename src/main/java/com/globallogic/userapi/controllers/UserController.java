@@ -33,7 +33,7 @@ public class UserController {
 
             if (body == null || body.isEmpty()) {
                 logger.warn(Constants.NO_BODY);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new ErrorResponse(Constants.NO_BODY));
+                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.NO_BODY)));
             }
 
             User user = new Gson().fromJson(body, User.class);
@@ -41,17 +41,17 @@ public class UserController {
 
             if(user.isNullField()) {
                 logger.warn(Constants.MISSING_INFO);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new ErrorResponse(Constants.MISSING_INFO));
+                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.MISSING_INFO)));
             }
 
             if(!user.getEmail().matches(Constants.MAIL_REGEX)) {
                 logger.warn(Constants.INVALID_MAIL);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new ErrorResponse(Constants.INVALID_MAIL));
+                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.INVALID_MAIL)));
             }
 
             if(!user.getPassword().matches(Constants.PASSWORD_REGEX)) {
                 logger.warn(Constants.INVALID_PASSWORD);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new ErrorResponse(Constants.INVALID_PASSWORD));
+                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.INVALID_PASSWORD)));
             }
 
             user.setActive(true);
@@ -77,17 +77,17 @@ public class UserController {
             logger.error(e.toString(), e);
 
             if(e.toString().toUpperCase().contains(Constants.EMAIL_EXCEPTION_KEYWORD))
-                return responseBuilder(HttpStatus.CONFLICT, new ErrorResponse(Constants.REGISTERED_EMAIL));
+                return responseBuilder(HttpStatus.CONFLICT, new Gson().toJson(new ErrorResponse(Constants.REGISTERED_EMAIL)));
 
-            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new ErrorResponse(e.toString()));
+            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new Gson().toJson(new ErrorResponse(e.toString())));
         } catch (Exception e) {
             logger.error(e.toString(), e);
 
-            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new ErrorResponse(e.toString()));
+            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new Gson().toJson(new ErrorResponse(e.toString())));
         }
     }
 
-    private ResponseEntity responseBuilder(HttpStatus status, Object body) {
+    private ResponseEntity responseBuilder(HttpStatus status, String body) {
         return ResponseEntity
                 .status(status)
                 .contentType(MediaType.APPLICATION_JSON)
