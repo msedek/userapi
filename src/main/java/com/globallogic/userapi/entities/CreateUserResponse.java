@@ -25,6 +25,12 @@ public class CreateUserResponse {
         this.isActive = isActive;
     }
 
+    public CreateUserResponse(UUID id, String token, boolean isActive) {
+        this.id = id;
+        this.token = token;
+        this.isActive = isActive;
+    }
+
     public UUID getId() {
         return id;
     }

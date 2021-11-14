@@ -16,11 +16,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+//    @Autowired
+//    private UserService userService;
 
     protected static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -57,21 +59,23 @@ public class UserController {
             user.setActive(true);
             user.setToken(Jwts.builder().setSubject(user.getEmail()).signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256)).compact());
 
-            User createdUser = userService.createUser(user);
+//            User createdUser = userService.createUser(user);
+//
+//            for (UserPhone phone: user.getPhones()) {
+//                logger.info(phone.toString());
+//                phone.setUser(user);
+//                userService.createPhone(phone);
+//            }
 
-            for (UserPhone phone: user.getPhones()) {
-                logger.info(phone.toString());
-                phone.setUser(user);
-                userService.createPhone(phone);
-            }
+//            return responseBuilder(HttpStatus.CREATED, new CreateUserResponse(
+//                    createdUser.getId(),
+//                    createdUser.getCreated(),
+//                    createdUser.getModified(),
+//                    createdUser.getLastLogin(),
+//                    createdUser.getToken(),
+//                    createdUser.isActive()));
 
-            return responseBuilder(HttpStatus.CREATED, new CreateUserResponse(
-                    createdUser.getId(),
-                    createdUser.getCreated(),
-                    createdUser.getModified(),
-                    createdUser.getLastLogin(),
-                    createdUser.getToken(),
-                    createdUser.isActive()));
+            return responseBuilder(HttpStatus.CREATED, new CreateUserResponse(UUID.randomUUID(), "token", true));
 
         } catch(DataIntegrityViolationException e) {
             logger.error(e.toString(), e);
