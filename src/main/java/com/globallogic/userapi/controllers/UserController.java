@@ -65,13 +65,13 @@ public class UserController {
                 userService.createPhone(phone);
             }
 
-            return responseBuilder(HttpStatus.CREATED, new CreateUserResponse(
+            return responseBuilder(HttpStatus.CREATED, new Gson().toJson(new CreateUserResponse(
                     createdUser.getId(),
                     createdUser.getCreated(),
                     createdUser.getModified(),
                     createdUser.getLastLogin(),
                     createdUser.getToken(),
-                    createdUser.isActive()));
+                    createdUser.isActive())));
 
         } catch(DataIntegrityViolationException e) {
             logger.error(e.toString(), e);
