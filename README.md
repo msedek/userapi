@@ -25,7 +25,7 @@ project and generate the userapi.jar (then with the bash, go to **/userapi/build
 
 #Check Database
 - In the terminal scroll up and search for **H2ConsoleAutoConfiguration    : H2 console available at '/h2'. Database available at 'jdbc:h2:mem:xxxxxxx-xxxxxx-xxx-xxx-xxxxxx'**
-- then open a browser and type in the url **localhost:8080/h2** and it will ask for the **mem:xxxxxxx-xxxxxx-xxx-xxx-xxxxxx>** value, all the others parameters are default
+- then open a browser and type in the url **localhost:8080/h2** and it will ask for the **jdbc:h2:mem:xxxxxxx-xxxxxx-xxx-xxx-xxxxxx>** value, paste it at **JDBC URL**, all the others parameters are default
 
 #Usage
 - Import the included curl into POSTMAN REST CLIENT to start creating users.
