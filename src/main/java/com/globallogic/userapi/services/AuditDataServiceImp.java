@@ -1,8 +1,7 @@
 package com.globallogic.userapi.services;
 
-import com.globallogic.userapi.entities.AuditDataResponse;
+import com.globallogic.userapi.CustoExceptions.AuditDataServiceException;
 import com.globallogic.userapi.entities.Constants;
-import com.globallogic.userapi.entities.ErrorResponse;
 import com.globallogic.userapi.entities.User;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
@@ -18,39 +17,30 @@ public class AuditDataServiceImp implements AuditDataService {
     protected static final Logger logger = LoggerFactory.getLogger(AuditDataServiceImp.class);
 
     @Override
-    public AuditDataResponse auditRequest(String body) {
+    public User auditRequest(String body) throws Exception{
 
         try {
 
-            if (body == null || body.isEmpty()) {
-                logger.warn(Constants.NO_BODY);
-                return new AuditDataResponse(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.NO_BODY)), null);
-            }
+            if (body == null || body.isEmpty())
+                throw new AuditDataServiceException(HttpStatus.BAD_REQUEST, Constants.NO_BODY);
 
             User user = new Gson().fromJson(body, User.class);
             logger.info(user.toString());
 
-            if (user.isNullField()) {
-                logger.warn(Constants.MISSING_INFO);
-                return new AuditDataResponse(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.MISSING_INFO)), null);
-            }
+            if (user.isNullField())
+                throw new AuditDataServiceException(HttpStatus.BAD_REQUEST, Constants.MISSING_INFO);
 
-            if (!user.getEmail().matches(Constants.MAIL_REGEX)) {
-                logger.warn(Constants.INVALID_MAIL);
-                return new AuditDataResponse(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.INVALID_MAIL)), null);
-            }
+            if (!user.getEmail().matches(Constants.MAIL_REGEX))
+                throw new AuditDataServiceException(HttpStatus.BAD_REQUEST, Constants.INVALID_MAIL);
 
-            if (!user.getPassword().matches(Constants.PASSWORD_REGEX)) {
-                logger.warn(Constants.INVALID_PASSWORD);
-                return new AuditDataResponse(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.INVALID_PASSWORD)), null);
-            }
+            if (!user.getPassword().matches(Constants.PASSWORD_REGEX))
+                throw new AuditDataServiceException(HttpStatus.BAD_REQUEST, Constants.INVALID_PASSWORD);
 
-            return new AuditDataResponse(null, null, user);
+            return user;
 
         } catch (Exception e) {
             logger.error(e.toString(), e);
-
-            return new AuditDataResponse(HttpStatus.INTERNAL_SERVER_ERROR, new Gson().toJson(new ErrorResponse(e.toString())), null);
+            throw e;
         }
     }
 }

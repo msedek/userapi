@@ -1,7 +1,7 @@
 package com.globallogic.userapi.services;
 
-import com.globallogic.userapi.entities.AuditDataResponse;
+import com.globallogic.userapi.entities.User;
 
 public interface AuditDataService {
-    AuditDataResponse auditRequest(String body);
+    User auditRequest(String body) throws Exception;
 }

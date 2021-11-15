@@ -1,5 +1,6 @@
 package com.globallogic.userapi.controllers;
 
+import com.globallogic.userapi.CustoExceptions.AuditDataServiceException;
 import com.globallogic.userapi.entities.*;
 import com.globallogic.userapi.services.AuditDataService;
 import com.globallogic.userapi.services.UserService;
@@ -33,26 +34,20 @@ public class UserController {
 
         try {
 
-            AuditDataResponse auditDataResponse = auditDataService.auditRequest(httpEntity.getBody());
+            User user = auditDataService.auditRequest(httpEntity.getBody());
 
-            if(auditDataResponse.getUser() == null)
-                return responseBuilder(auditDataResponse.getStatus(), auditDataResponse.getResult());
+            user.setActive(true);
+            user.setToken(Jwts
+                    .builder()
+                    .setSubject(user.getEmail())
+                    .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256))
+                    .compact());
 
-            auditDataResponse.getUser().setActive(true);
+            User createdUser = userService.createUser(user);
 
-            auditDataResponse
-                    .getUser()
-                    .setToken(Jwts
-                            .builder()
-                            .setSubject(auditDataResponse.getUser().getEmail())
-                            .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256))
-                            .compact());
-
-            User createdUser = userService.createUser(auditDataResponse.getUser());
-
-            for (UserPhone phone: auditDataResponse.getUser().getPhones()) {
+            for (UserPhone phone: user.getPhones()) {
                 logger.info(phone.toString());
-                phone.setUser(auditDataResponse.getUser());
+                phone.setUser(user);
                 userService.createPhone(phone);
             }
 
@@ -64,7 +59,9 @@ public class UserController {
                     createdUser.getToken(),
                     createdUser.isActive())));
 
-        } catch(DataIntegrityViolationException e) {
+        } catch (AuditDataServiceException e) {
+            return responseBuilder(e.getStatus(), new Gson().toJson(new ErrorResponse(e.getMessage())));
+        }  catch(DataIntegrityViolationException e) {
             logger.error(e.toString(), e);
 
             if(e.toString().toUpperCase().contains(Constants.EMAIL_EXCEPTION_KEYWORD))
