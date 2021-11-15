@@ -7,9 +7,9 @@ Open a bash console then:
 - Check the latest gradle version on <https://gradle.org/releases/>
 - then in your bash: wget https://services.gradle.org/distributions/gradle-7.3-bin.zip -P /tmp
 - After download finishes: sudo unzip -d /opt/gradle /tmp/gradle-*.zip
-- Then setup environment variables: sudo nano /etc/profile.d/gradle.sh, inside the file, just paste  /s:
+- Then setup environment variables: sudo nano /etc/profile.d/gradle.sh, inside the file, just paste  \s:
 
-export GRADLE_HOME=/opt/gradle/gradle-7.3 /s
+export GRADLE_HOME=/opt/gradle/gradle-7.3 \s
 export PATH=${GRADLE_HOME}/bin:${PATH}
 
 
