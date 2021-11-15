@@ -10,7 +10,7 @@ Open a bash console then:
 - Then setup environment variables: sudo nano /etc/profile.d/gradle.sh, inside the file, just paste:
 
 export GRADLE_HOME=/opt/gradle/gradle-7.3 \
-export PATH=${GRADLE_HOME}/bin:${PATH}\
+export PATH=${GRADLE_HOME}/bin:${PATH}
 
 
 (Note that the gradle version must match with what you downloaded)
