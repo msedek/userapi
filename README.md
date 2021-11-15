@@ -1,9 +1,8 @@
 # userapi project deployment UBUNTU
 
-Open a bash console then:
+Open a bash console then:\
 
-#Gradle Installation
-sudo apt install gradle -y
+sudo apt install gradle -y\
 
 #Project Build
 - In your bash go inside the **/userapi** folder and type: **gradle bootjar**, this command will build the
