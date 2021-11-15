@@ -19,7 +19,7 @@ export PATH=${GRADLE_HOME}/bin:${PATH}
 
 #Project Build
 - In your bash go inside the **/userapi** folder and type: **gradle bootjar**, this command will build the
-project and generate the userapi.jar (then with the bash, go to **/userapi/build/libs**) to be able to run the project.
+project and generate the userapi.jar (then with the bash, go to **/userapi/build/libs**) to be able to run the project.\
 **(if the build process fails, just retry with the same gradle bootjar again)**
 - proceed to execute: **java -jar userapi.jar** (use TAB to autocomplete the .jar file name)
 
