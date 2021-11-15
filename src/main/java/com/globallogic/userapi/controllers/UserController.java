@@ -1,6 +1,7 @@
 package com.globallogic.userapi.controllers;
 
 import com.globallogic.userapi.entities.*;
+import com.globallogic.userapi.services.AuditDataService;
 import com.globallogic.userapi.services.UserService;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Jwts;
@@ -22,6 +23,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AuditDataService auditDataService;
+
     protected static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping("/createuser")
@@ -29,39 +33,26 @@ public class UserController {
 
         try {
 
-            String body = httpEntity.getBody();
+            AuditDataResponse auditDataResponse = auditDataService.auditRequest(httpEntity.getBody());
 
-            if (body == null || body.isEmpty()) {
-                logger.warn(Constants.NO_BODY);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.NO_BODY)));
-            }
+            if(auditDataResponse.getUser() == null)
+                return responseBuilder(auditDataResponse.getStatus(), auditDataResponse.getResult());
 
-            User user = new Gson().fromJson(body, User.class);
-            logger.info(user.toString());
+            auditDataResponse.getUser().setActive(true);
 
-            if(user.isNullField()) {
-                logger.warn(Constants.MISSING_INFO);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.MISSING_INFO)));
-            }
+            auditDataResponse
+                    .getUser()
+                    .setToken(Jwts
+                            .builder()
+                            .setSubject(auditDataResponse.getUser().getEmail())
+                            .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256))
+                            .compact());
 
-            if(!user.getEmail().matches(Constants.MAIL_REGEX)) {
-                logger.warn(Constants.INVALID_MAIL);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.INVALID_MAIL)));
-            }
+            User createdUser = userService.createUser(auditDataResponse.getUser());
 
-            if(!user.getPassword().matches(Constants.PASSWORD_REGEX)) {
-                logger.warn(Constants.INVALID_PASSWORD);
-                return responseBuilder(HttpStatus.BAD_REQUEST, new Gson().toJson(new ErrorResponse(Constants.INVALID_PASSWORD)));
-            }
-
-            user.setActive(true);
-            user.setToken(Jwts.builder().setSubject(user.getEmail()).signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256)).compact());
-
-            User createdUser = userService.createUser(user);
-
-            for (UserPhone phone: user.getPhones()) {
+            for (UserPhone phone: auditDataResponse.getUser().getPhones()) {
                 logger.info(phone.toString());
-                phone.setUser(user);
+                phone.setUser(auditDataResponse.getUser());
                 userService.createPhone(phone);
             }
 
