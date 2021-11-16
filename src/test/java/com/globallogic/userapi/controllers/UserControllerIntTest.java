@@ -3,6 +3,7 @@ package com.globallogic.userapi.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.globallogic.userapi.entities.User;
 import com.globallogic.userapi.entities.UserPhone;
+import com.globallogic.userapi.services.AuditDataService;
 import com.globallogic.userapi.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,12 +26,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = UserController.class)
+@ComponentScan("com.globallogic.userapi.services")
 class UserControllerIntTest {
 
     protected static final Logger logger = LoggerFactory.getLogger(UserControllerIntTest.class);
 
     @MockBean
     private UserService userService;
+
+    @Autowired
+    private AuditDataService auditDataService;
 
     @Autowired
     private MockMvc mockMvc;

@@ -70,7 +70,6 @@ public class UserController {
             return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new Gson().toJson(new ErrorResponse(e.toString())));
         } catch (Exception e) {
             logger.error(e.toString(), e);
-
             return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new Gson().toJson(new ErrorResponse(e.toString())));
         }
     }
