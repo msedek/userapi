@@ -17,7 +17,7 @@ public class AuditDataServiceImp implements AuditDataService {
     protected static final Logger logger = LoggerFactory.getLogger(AuditDataServiceImp.class);
 
     @Override
-    public User auditRequest(String body) throws Exception {
+    public User auditRequest(String body) throws AuditDataServiceException {
 
         try {
 
