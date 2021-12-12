@@ -1,18 +1,22 @@
 package com.globallogic.userapi.entities;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
 
-@Entity
+@Entity(name="User")
 @Table(name = "USER")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
 public class User {
 
     @Id
@@ -50,112 +54,32 @@ public class User {
     @Column(name = "isactive")
     private boolean isActive;
 
-    @OneToMany(mappedBy="user")
+    @OneToMany(targetEntity = UserPhone.class,cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private List<UserPhone> phones;
 
-    public User(String name, String email, String password, List<UserPhone>phones, boolean isActive) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.phones = phones;
-        this.isActive = isActive;
-    }
+    @Entity(name="UserPhone")
+    @Table(name = "PHONES")
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @ToString
+    public static class UserPhone {
 
-    public User(String name, String email, String password, List<UserPhone>phones) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.phones = phones;
-    }
+        @Id
+        @GeneratedValue(strategy = GenerationType.AUTO)
+        private long id;
 
-    public String getName() {
-        return name;
-    }
+        @Column(name = "number")
+        private String number;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+        @Column(name = "city_code")
+        @SerializedName("citycode")
+        private String cityCode;
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public List<UserPhone> getPhones() {
-        return phones;
-    }
-
-    public void setPhones(List<UserPhone> phones) {
-        this.phones = phones;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public Timestamp getCreated() {
-        return created;
-    }
-
-    public void setCreated(Timestamp created) {
-        this.created = created;
-    }
-
-    public Timestamp getModified() {
-        return modified;
-    }
-
-    public void setModified(Timestamp modified) {
-        this.modified = modified;
-    }
-
-    public Timestamp getLastLogin() {
-        return lastLogin;
-    }
-
-    public void setLastLogin(Timestamp lastLogin) {
-        this.lastLogin = lastLogin;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
-    }
-
-    @Override
-    public String toString() {
-        return "UserName: '" + this.name + "', Email: '" + this.email;
-    }
-
-    public boolean isNullField() {
-        return Stream
-                .of(name, email, password)
-                .anyMatch(Objects::isNull);
+        @Column(name = "country_code")
+        @SerializedName("contrycode")
+        private String countryCode;
     }
 }

@@ -2,8 +2,8 @@ package com.globallogic.userapi.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.globallogic.userapi.entities.User;
-import com.globallogic.userapi.entities.UserPhone;
-import com.globallogic.userapi.services.AuditDataService;
+import com.globallogic.userapi.services.PhoneService;
+import com.globallogic.userapi.services.UserActivationService;
 import com.globallogic.userapi.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,9 +20,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Arrays;
+import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = UserController.class)
@@ -33,9 +33,11 @@ class UserControllerIntTest {
 
     @MockBean
     private UserService userService;
+    @MockBean
+    private PhoneService phoneService;
 
     @Autowired
-    private AuditDataService auditDataService;
+    private UserActivationService userActivationService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,10 +45,12 @@ class UserControllerIntTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * The test is performed by not sending the body.
+     */
     @Test
     void nullBodyResponse() throws Exception {
 
-        //The test is performed by not sending the body.
         RequestBuilder request = MockMvcRequestBuilders
                 .post("/createuser")
                 .contentType(MediaType.APPLICATION_JSON);
@@ -56,29 +60,22 @@ class UserControllerIntTest {
         logger.info(String.format("Response status nullBodyResponse %d Expected status %d", result.getResponse().getStatus(), 400));
     }
 
-    @Test
-    void badFieldNameResponse() throws Exception {
-
-        //The test is performed by changing the field "name" to "surname" (fields "email" and "password" can also be changed to perform the test).
-        String body = "{ \"surname\": \"Julio Gonzalez\", \"email\": \"julio@test.cl\", \"password\": \"K45g\", \"phones\": [ { \"number\": \"87650009\", \"citycode\": \"7\", \"contrycode\": \"25\" } ] }";
-
-        RequestBuilder request = MockMvcRequestBuilders
-                .post("/createuser")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body);
-
-        MvcResult  result = mockMvc.perform(request).andReturn();
-        assertEquals(400, result.getResponse().getStatus());
-        logger.info(String.format("Response status badFieldNameResponse %d Expected status %d", result.getResponse().getStatus(), 400));
-    }
-
+    /**
+     * The test is performed by not sending domain ".something".
+     */
     @Test
     void badEmailResponse() throws Exception {
 
-        //The test is performed by sending domain ".com" in the email and not ".cl" as per specifications.
-        User user = new User("Miguel Sedek", "miguelsedek@gmail.com",
-                "H33zxc", Arrays.asList(new UserPhone("1234567",
-                "34","12")));
+        User user =  User.builder()
+                .name("Miguel Sedek")
+                .email("miguelsedek@gmail")
+                .password("H33zxc")
+                .phones(Collections.singletonList(User.UserPhone.builder()
+                        .number("1234567")
+                        .cityCode("34")
+                        .countryCode("12")
+                        .build()))
+                .build();
 
         RequestBuilder request = MockMvcRequestBuilders
                 .post("/createuser")
@@ -90,14 +87,23 @@ class UserControllerIntTest {
         logger.info(String.format("Response status badEmailResponse %d Expected status %d", result.getResponse().getStatus(), 400));
     }
 
+    /**
+     * The test is performed by sending an invalid password structure as per specifications (in this case not sending an uppercase letter)
+     * it can also be tested by not sending any lowercase letter or either by sending no numbers or more than 2.
+     */
     @Test
     void badPasswordResponse() throws Exception {
 
-        //The test is performed by sending an invalid password structure as per specifications (in this case not sending an uppercase letter)
-        // it can also be tested by not sending any lowercase letter or either by sending no numbers or more than 2.
-        User user = new User("Miguel Sedek", "miguelsedek@gmail.cl",
-                "33zxc", Arrays.asList(new UserPhone("1234567",
-                "34","12")));
+        User user =  User.builder()
+                .name("Miguel Sedek")
+                .email("miguelsedek@gmail.com")
+                .password("33zxc")
+                .phones(Collections.singletonList(User.UserPhone.builder()
+                        .number("1234567")
+                        .cityCode("34")
+                        .countryCode("12")
+                        .build()))
+                .build();
 
         RequestBuilder request = MockMvcRequestBuilders
                 .post("/createuser")

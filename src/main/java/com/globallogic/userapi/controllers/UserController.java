@@ -1,13 +1,14 @@
 package com.globallogic.userapi.controllers;
 
-import com.globallogic.userapi.CustoExceptions.AuditDataServiceException;
-import com.globallogic.userapi.entities.*;
-import com.globallogic.userapi.services.AuditDataService;
+import com.globallogic.userapi.customexceptions.AuditDataServiceException;
+import com.globallogic.userapi.entities.Constants;
+import com.globallogic.userapi.entities.CreateUserResponse;
+import com.globallogic.userapi.entities.ErrorResponse;
+import com.globallogic.userapi.entities.User;
+import com.globallogic.userapi.services.PhoneService;
+import com.globallogic.userapi.services.UserActivationService;
 import com.globallogic.userapi.services.UserService;
 import com.google.gson.Gson;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,68 +17,88 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controlador creacion de usuario
+ */
 @RestController
 public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private PhoneService phoneService;
 
     @Autowired
-    private AuditDataService auditDataService;
+    private UserActivationService userActivationService;
 
     protected static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
+    /**
+     * Endpoint para creacion de un nuevo usuario.
+     * @param  httpEntity objeto de entrada servicio REST que contiene el body con el JSON del request.
+     * @return ResponseEntity.
+     */
     @PostMapping("/createuser")
-    public ResponseEntity createUser(HttpEntity<String> httpEntity) {
+    public ResponseEntity<String> createUser(HttpEntity<String> httpEntity) {
 
         try {
 
-            User user = auditDataService.auditRequest(httpEntity.getBody());
+            User user = userService.createUser(userActivationService.createRequest(httpEntity.getBody()));
 
-            user.setActive(true);
-            user.setToken(Jwts
-                    .builder()
-                    .setSubject(user.getEmail())
-                    .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256))
-                    .compact());
+            if(user.getPhones() != null)
+                user.getPhones().forEach(phoneService::createPhone);
 
-            User createdUser = userService.createUser(user);
-
-            for (UserPhone phone: user.getPhones()) {
-                logger.info(phone.toString());
-                phone.setUser(user);
-                userService.createPhone(phone);
-            }
-
-            return responseBuilder(HttpStatus.CREATED, new Gson().toJson(new CreateUserResponse(
-                    createdUser.getId(),
-                    createdUser.getCreated(),
-                    createdUser.getModified(),
-                    createdUser.getLastLogin(),
-                    createdUser.getToken(),
-                    createdUser.isActive())));
+            return responseBuilder(CreateUserResponse.builder()
+                    .id(user.getId())
+                    .created(user.getCreated())
+                    .modified(user.getModified())
+                    .lastLogin(user.getLastLogin())
+                    .token(user.getToken())
+                    .isActive(user.isActive())
+                    .build());
 
         } catch (AuditDataServiceException e) {
-            return responseBuilder(e.getStatus(), new Gson().toJson(new ErrorResponse(e.getMessage())));
+            return responseBuilder(e.getStatus(), new ErrorResponse(e.getMessage()));
         }  catch(DataIntegrityViolationException e) {
             logger.error(e.toString(), e);
 
             if(e.toString().toUpperCase().contains(Constants.EMAIL_EXCEPTION_KEYWORD))
-                return responseBuilder(HttpStatus.CONFLICT, new Gson().toJson(new ErrorResponse(Constants.REGISTERED_EMAIL)));
+                return responseBuilder(HttpStatus.CONFLICT,new ErrorResponse(Constants.REGISTERED_EMAIL));
 
-            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new Gson().toJson(new ErrorResponse(e.toString())));
+            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new ErrorResponse(e.toString()));
         } catch (Exception e) {
             logger.error(e.toString(), e);
-            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new Gson().toJson(new ErrorResponse(e.toString())));
+            return responseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, new ErrorResponse(e.toString()));
         }
     }
 
-    private ResponseEntity responseBuilder(HttpStatus status, String body) {
+    /**
+     * Client response
+     * @param  status status HTTP.
+     * @param  body, JSON con la data.
+     * @return http ResponseEntity para el cliente.
+     */
+    private ResponseEntity<String> responseBuilder(HttpStatus status, ErrorResponse body) {
+        logger.info("Response: {}", body);
         return ResponseEntity
                 .status(status)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(body);
+                .body(new Gson().toJson(body));
+    }
+
+    /**
+     * Client response
+     * @param  body, response object.
+     * @return http ResponseEntity para el cliente.
+     */
+    private ResponseEntity<String> responseBuilder(CreateUserResponse body) {
+        logger.info("Response: {}", body);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new Gson().toJson(body));
     }
 }
